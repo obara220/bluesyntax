@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.panda.aoodds.sports.esport</groupId>
+        <artifactId>aoodds-data-esport</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.panda.aoodds.esport.api</groupId>
+    <artifactId>aoodds-esport-api</artifactId>
+    <version>1.0.5</version>
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <distributionManagement>
+        <repository>
+            <id>panda</id>
+            <name>Releases</name>
+            <url>http://idc-pub-nexus.dbsportapixxxutikb.com/repository/panda/</url>
+        </repository>
+        <snapshotRepository>
+            <id>panda-snapshots</id>
+            <name>panda-snapshots</name>
+            <url>http://idc-pub-nexus.dbsportapixxxutikb.com/repository/panda-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>

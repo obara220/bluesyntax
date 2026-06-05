@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="charset" value="utf-8"/>
+    <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+    <property name="pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"/>
+
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
+    <property name="LOG_HOME" value="/opt/logs/ao-odds/aoodds-data-esport" />
+    <!-- 控制台输出 -->
+ <!--   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${pattern}</pattern>
+            <charset>${charset}</charset>
+        </encoder>
+    </appender>-->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder charset="UTF-8" class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <jsonFactoryDecorator class="net.logstash.logback.decorate.CharacterEscapesJsonFactoryDecorator">
+                <escape>
+                    <targetCharacterCode>10</targetCharacterCode>
+                    <escapeSequence>\u2028</escapeSequence>
+                </escape>
+            </jsonFactoryDecorator>
+            <providers>
+                <pattern>
+                    <pattern>
+                        {
+                        "serviceName": "aoodds-data-producer",
+                        "date":"%d{yyyy-MM-dd HH:mm:ss.SSS}",
+                        "logLevel": "%level",
+                        "pid": "${PID:-}",
+                        "traceId":"%X{TRACE_ID:-}",
+                        "thread": "%thread",
+                        "class": "%logger{40}",
+                        "msg":"%msg",
+                        "stackTrace" : "%exception"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+    <!-- 按照每天生成日志文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>${pattern}</pattern>
+            <charset>${charset}</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名 -->
+            <FileNamePattern>${LOG_HOME}/aoodds-data-producer-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <!-- 日志文件最大尺寸 -->
+            <maxFileSize>1024MB</maxFileSize>
+            <!--日志文件保留天数-->
+            <MaxHistory>3</MaxHistory>
+        </rollingPolicy>
+        <append>true</append>
+    </appender>
+
+    <!-- 错误日志 -->
+    <appender name="FILEErrorLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [${springAppName:-},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}] [%thread] %-5level %logger{36} #_# %msg%n</Pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!--滚动策略 按天生成日志-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--路径-->
+            <FileNamePattern>${LOG_HOME}/error/aoodds-data-producer-error-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <!-- 日志文件最大尺寸 -->
+            <maxFileSize>1024MB</maxFileSize>
+            <!--日志文件保留天数-->
+            <MaxHistory>3</MaxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 日志输出级别 -->
+    <root level="INFO">
+        <appender-ref ref="console" />
+        <appender-ref ref="FILE" />
+        <appender-ref ref="FILEErrorLog" />
+    </root>
+</configuration>
