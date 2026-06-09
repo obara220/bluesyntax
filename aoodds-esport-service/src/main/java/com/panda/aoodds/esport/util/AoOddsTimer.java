@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.panda.aoodds.esport.common.constant.RedisKeyConstant;
 import com.panda.aoodds.esport.common.service.RedisService;
+import com.panda.aoodds.esport.handle.MarketOddsDelayHandler;
 import com.panda.aoodds.esport.handle.SupportMarketHandler;
 import com.panda.aoodds.esport.service.SubjectEsportMatchMarketManager;
 import io.lettuce.core.RedisCommandTimeoutException;
@@ -46,6 +47,8 @@ public class AoOddsTimer implements ApplicationListener<ApplicationReadyEvent> {
     private RedisTemplate redisTemplate;
     @Autowired
     private SupportMarketHandler supportMarketHandler;
+    @Autowired
+    private MarketOddsDelayHandler marketOddsDelayHandler;
     @Autowired
     @Qualifier("aoMarketOddsTimerThread")
     private Executor taskExecutor;
@@ -111,6 +114,9 @@ public class AoOddsTimer implements ApplicationListener<ApplicationReadyEvent> {
                         redisTemplate.opsForList().leftPush(AO_REDIS_QUEUE_ESPORT_ODDSTIMER,key);
                         redisService.hSetField(AO_LASTTIME_ESPORT_MARKET_UPDATE,key,currentTimeSys,AO_1DAYS_KEY_TIME);
 
+                    }
+                    if(proidid==6||proidid==7||proidid==41||proidid==42||proidid==50){
+                        marketOddsDelayHandler.checkLiveMatchOddsDelay(key, proidid);
                     }
                 }
 

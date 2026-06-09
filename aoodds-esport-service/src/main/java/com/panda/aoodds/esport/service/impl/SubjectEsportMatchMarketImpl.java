@@ -18,6 +18,7 @@ import com.panda.aoodds.esport.common.exception.ApiException;
 import com.panda.aoodds.esport.common.service.RedisService;
 import com.panda.aoodds.esport.handle.MarketCacheHandler;
 import com.panda.aoodds.esport.handle.MarketLoadBalanceHandler;
+import com.panda.aoodds.esport.handle.MarketOddsDelayHandler;
 import com.panda.aoodds.esport.handle.SupportMarketHandler;
 import com.panda.aoodds.esport.handle.db.DbEsportMatchMarketConfigConfigDaoHandler;
 import com.panda.aoodds.esport.service.EsportMarketMessageService;
@@ -68,6 +69,8 @@ public class SubjectEsportMatchMarketImpl implements SubjectEsportMatchMarketMan
     RedisService redisService;
     @Autowired
     DbEsportMatchMarketConfigConfigDaoHandler dbEsportMatchMarketConfigConfigDaoHandler;
+    @Autowired
+    private MarketOddsDelayHandler marketOddsDelayHandler;
     private static final String MATCH_LOCK_PREFIX = RedisKeyConstant.MATCH_LOCK + "_notifyMarketMessage_";
 
     @Override
@@ -162,6 +165,9 @@ public class SubjectEsportMatchMarketImpl implements SubjectEsportMatchMarketMan
                 marketCacheHandler.marketDifferentClose(linkId, matchId, aoMatchMarketInfo);
             }
             esportMarketMessageService.sendMarketMessage(aoMatchMarketInfo);
+            if (1 == aoMatchMarketInfo.getLiveFlag()) {
+                marketOddsDelayHandler.recordLastPushTime(matchId);
+            }
         }catch (Exception ex){
             log.error("::{}::notifyMarketMessage，回调入参AO赛事ID,redisLocKey:{},释放分布式锁,lockValue:{}", linkId, redisLocKey, lockValue,ex);
         }finally {

@@ -94,6 +94,48 @@ public class EsportMarketPushServiceImpl implements EsportMarketMessageService {
      * C01赛事关闭 mongo告警 84157
      * @param aoMatchMarketInfo
      */
+    @Override
+    public void sendOddsDelayWarnMessage(AoMatchMarketInfo aoMatchMarketInfo, String machineId, long delayMs) {
+        if (null == aoMatchMarketInfo) {
+            return;
+        }
+        String linkId = aoMatchMarketInfo.getLinkeId();
+        VsWarnInfoDTO vsWarnInfoDTO = new VsWarnInfoDTO();
+        vsWarnInfoDTO.setLinkId(linkId);
+        vsWarnInfoDTO.setDataSourceCode(aoMatchMarketInfo.getDataSourceCode());
+        vsWarnInfoDTO.setThirdMatchSourceId(aoMatchMarketInfo.getMatchSourceId());
+        vsWarnInfoDTO.setSportId(aoMatchMarketInfo.getSportId());
+        vsWarnInfoDTO.setMachineId(machineId);
+        String[] profiles = environment.getActiveProfiles();
+        if (profiles.length > 0) {
+            vsWarnInfoDTO.setEnvironment(profiles[0]);
+        } else {
+            vsWarnInfoDTO.setEnvironment("default");
+        }
+        vsWarnInfoDTO.setWarnTime(dateTimeFormat());
+        vsWarnInfoDTO.setWarnType("C01赔率延迟");
+        vsWarnInfoDTO.setMessage("C01赛事存在赔率延迟，请注意！延迟:" + (delayMs / 1000) + "s");
+
+        VirtualRequest<VsWarnInfoDTO> virtualRequest = new VirtualRequest<>();
+        virtualRequest.setLinkId(linkId);
+        virtualRequest.setDataSourceCode(aoMatchMarketInfo.getDataSourceCode());
+        virtualRequest.setDataSourceTime(System.currentTimeMillis());
+        virtualRequest.setData(vsWarnInfoDTO);
+        MessageBuilder<VirtualRequest<VsWarnInfoDTO>> builder = MessageBuilder.withPayload(virtualRequest)
+                .setHeader(MessageConst.PROPERTY_KEYS, linkId);
+        rocketMqTemplate.asyncSend("C01_WARN_NOTICE_TOPIC:" + aoMatchMarketInfo.getMatchSourceId(), builder.build(), new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("::{}::,C01_WARN_NOTICE_TOPIC odds delay send successful", linkId);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("::{}::C01_WARN_NOTICE_TOPIC odds delay send fail; ", linkId, throwable);
+            }
+        });
+    }
+
     public void sendMatchWarnNoticeMessage(AoMatchMarketInfo aoMatchMarketInfo) {
         if(null == aoMatchMarketInfo){
             return;

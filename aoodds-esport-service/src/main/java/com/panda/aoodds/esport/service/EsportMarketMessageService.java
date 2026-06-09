@@ -8,4 +8,6 @@ public interface EsportMarketMessageService {
 
     public  void sendMatchStatusMessage(AoMatchMarketInfo aoMatchMarketInfo );
 
+    public  void sendOddsDelayWarnMessage(AoMatchMarketInfo aoMatchMarketInfo, String machineId, long delayMs);
+
 }

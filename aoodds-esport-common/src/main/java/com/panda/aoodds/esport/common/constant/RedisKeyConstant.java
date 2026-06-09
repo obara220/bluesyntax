@@ -93,6 +93,10 @@ public class RedisKeyConstant {
     public static final String MATCH_TEMPLATE_LINER_MARGIN_CONFIG_CACHE="MATCH_TEMPLATE_LINER_MARGIN_CONFIG_CACHE:";
     //赛事限频
     public static final String AO_ESPORT_MATCH_NO_ODDS_ISSUED = "AO_ESPORT_MATCH_NO_ODDS_ISSUED:";
+    //滚球最近一次成功下发赔率时间
+    public static final String AO_ESPORT_MARKET_LAST_PUSH_TIME = "AO_ESPORT_MARKET_LAST_PUSH_TIME";
+    //赔率延迟兜底关盘/告警去重
+    public static final String AO_ESPORT_ODDS_DELAY_HANDLED = "AO_ESPORT_ODDS_DELAY_HANDLED:";
     public static Set<String> redisHashKey=new HashSet<>(5000);
 
     public static Set<String> getRedisHashKey() {
