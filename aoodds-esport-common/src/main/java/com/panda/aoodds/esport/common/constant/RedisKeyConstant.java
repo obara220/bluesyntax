@@ -95,9 +95,7 @@ public class RedisKeyConstant {
     public static final String AO_ESPORT_MATCH_NO_ODDS_ISSUED = "AO_ESPORT_MATCH_NO_ODDS_ISSUED:";
     //滚球最近一次成功下发赔率时间
     public static final String AO_ESPORT_MARKET_LAST_PUSH_TIME = "AO_ESPORT_MARKET_LAST_PUSH_TIME";
-    //赔率延迟兜底关盘/告警去重
-    public static final String AO_ESPORT_ODDS_DELAY_HANDLED = "AO_ESPORT_ODDS_DELAY_HANDLED:";
-    //赔率延迟兜底关盘后禁止定时器自动开盘
+    //赔率延迟兜底关盘：禁止AoDelayOddTimer重复处理、禁止定时器自动开盘
     public static final String AO_ESPORT_ODDS_DELAY_CLOSED = "AO_ESPORT_ODDS_DELAY_CLOSED:";
     public static Set<String> redisHashKey=new HashSet<>(5000);
 
