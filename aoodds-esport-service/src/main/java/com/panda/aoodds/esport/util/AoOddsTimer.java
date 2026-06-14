@@ -107,6 +107,9 @@ public class AoOddsTimer implements ApplicationListener<ApplicationReadyEvent> {
                     log.info("差值ID:{},diffTime:{},timing:{},is:{}, 刷新时间::{}, cacheRefreshTime::{},cacheTempLateRefreshTime::{}"
                             ,key,diffTime,(timing*1000L),diffTime>=(timing*1000L),timing,cacheTempLateRefreshTime.toString(),cacheTempLateRefreshTime);
                     if((proidid==6||proidid==7||proidid==41||proidid==42||proidid==50)&&diffTime>=(timing*1000L)&&currentTimeSys-startTime<14400000){
+                        if(marketOddsDelayHandler.isDelayClosed(key)){
+                            continue;
+                        }
                         if(blockingQueue.size()>10){
                             log.info("耗时:{},足球阻塞队列大小:{},执行赛事:{}",(System.currentTimeMillis()-a),blockingQueue.size(),key);
                         }
@@ -114,9 +117,6 @@ public class AoOddsTimer implements ApplicationListener<ApplicationReadyEvent> {
                         redisTemplate.opsForList().leftPush(AO_REDIS_QUEUE_ESPORT_ODDSTIMER,key);
                         redisService.hSetField(AO_LASTTIME_ESPORT_MARKET_UPDATE,key,currentTimeSys,AO_1DAYS_KEY_TIME);
 
-                    }
-                    if(proidid==6||proidid==7||proidid==41||proidid==42||proidid==50){
-                        marketOddsDelayHandler.checkLiveMatchOddsDelay(key, proidid);
                     }
                 }
 

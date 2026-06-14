@@ -114,6 +114,10 @@ public class SubjectEsportMatchMarketImpl implements SubjectEsportMatchMarketMan
             Map<ScoreType, HomeAwayScore<Integer>> scoreTypeHomeAwayScoreMap = supportMarketHandler.supportEsporScores(marketParamEntiy);
             marketParamEntiy.setLinkId(linkId);
             int liveFlag = marketParamEntiy.getHalf1stOr2nd().equals("1") && marketParamEntiy.getMatchClock().equals("0") ? 0 : 1;
+            if (liveFlag == 1 && marketOddsDelayHandler.isDelayClosed(matchId)) {
+                log.warn("::{}::notifyMarketMessage,赔率延迟已兜底关盘,禁止自动开盘:{}", linkId, matchId);
+                return;
+            }
             if (liveFlag == 1 && null != redisService.get(AO_ESPORT_MATCH_NO_ODDS_ISSUED)) {
                 log.info("::{}::notifyMarketMessage,限频不下发:{}", linkId, matchId);
                 return;

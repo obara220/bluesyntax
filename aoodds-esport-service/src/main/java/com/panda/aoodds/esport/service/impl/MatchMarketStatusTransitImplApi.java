@@ -7,7 +7,9 @@ import com.panda.aoodds.esport.service.SubjectEsportMatchMarketManager;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
+@Service
 @DubboService
 public class MatchMarketStatusTransitImplApi implements EsportMatchMarketStatusTransitServiceApi {
     @Autowired

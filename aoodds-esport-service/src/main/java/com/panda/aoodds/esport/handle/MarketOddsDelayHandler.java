@@ -1,10 +1,10 @@
 package com.panda.aoodds.esport.handle;
 
-import com.panda.aoodds.esport.api.service.EsportMatchMarketStatusTransitServiceApi;
 import com.panda.aoodds.esport.common.constant.CommonConstant;
 import com.panda.aoodds.esport.common.entity.AoMatchESportEntity;
 import com.panda.aoodds.esport.common.entity.AoMatchMarketInfo;
 import com.panda.aoodds.esport.common.service.RedisService;
+import com.panda.aoodds.esport.marketstate.MatchMarketStatusTransit;
 import com.panda.aoodds.esport.service.EsportMarketMessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +26,10 @@ import static com.panda.aoodds.esport.common.utils.TraceIdGenerator.createTraceI
 
 /**
  * C01滚球赔率延迟监控：超过 下发频率 + 宽限秒数 未成功推送则兜底关盘并告警。
+ * 由 {@link com.panda.aoodds.esport.util.AoDelayOddTimer} 定时扫描；推送成功后在
+ * {@link com.panda.aoodds.esport.service.impl.SubjectEsportMatchMarketImpl} 中记录最后推送时间。
+ * 兜底关盘后写入 {@link RedisKeyConstant#AO_ESPORT_ODDS_DELAY_CLOSED}，阻止 {@link com.panda.aoodds.esport.util.AoOddsTimer}
+ * 与 notifyMarketMessage 自动重新开盘。
  */
 @Slf4j
 @Component
@@ -46,7 +50,7 @@ public class MarketOddsDelayHandler {
     @Autowired
     private RedisService redisService;
     @Autowired
-    private EsportMatchMarketStatusTransitServiceApi esportMatchMarketStatusTransitServiceApi;
+    private MatchMarketStatusTransit matchMarketStatusTransit;
     @Autowired
     @Qualifier("esportMarketPushService")
     private EsportMarketMessageService esportMarketMessageService;
@@ -59,8 +63,15 @@ public class MarketOddsDelayHandler {
         redisService.del(AO_ESPORT_ODDS_DELAY_HANDLED + matchId);
     }
 
+    public boolean isDelayClosed(String matchId) {
+        return null != redisService.get(AO_ESPORT_ODDS_DELAY_CLOSED + matchId);
+    }
+
     public void checkLiveMatchOddsDelay(String matchId, Integer periodId) {
         if (periodId == null || periodId == 999 || !LIVE_PERIODS.contains(periodId)) {
+            return;
+        }
+        if (isDelayClosed(matchId)) {
             return;
         }
         if (null != redisService.get(AO_ESPORT_ODDS_DELAY_HANDLED + matchId)) {
@@ -108,8 +119,12 @@ public class MarketOddsDelayHandler {
         log.error("::{}::AO赛事ID:{},赔率延迟超过阈值, delayMs:{}, refreshSeconds:{}, extraSeconds:{}",
                 linkId, matchId, delayMs, refreshSeconds, delayExtraSeconds);
         redisService.set(AO_ESPORT_ODDS_DELAY_HANDLED + matchId, System.currentTimeMillis(), warnCooldownSeconds);
+        redisService.set(AO_ESPORT_ODDS_DELAY_CLOSED + matchId, System.currentTimeMillis(), AO_1DAYS_KEY_TIME);
         try {
-            esportMatchMarketStatusTransitServiceApi.upMatchMarketStatus(linkId, Long.valueOf(matchId), "g_goal");
+            AoMatchMarketInfo closedInfo = matchMarketStatusTransit.upMatchMarketStatus(linkId, Long.valueOf(matchId), "g_goal");
+            if (closedInfo != null) {
+                esportMarketMessageService.sendMarketMessage(closedInfo);
+            }
         } catch (Exception ex) {
             log.error("::{}::AO赛事ID:{},赔率延迟兜底关盘异常", linkId, matchId, ex);
         }
